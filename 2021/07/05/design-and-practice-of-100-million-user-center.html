@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"tech.0x4096.com","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.11.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="用户中心系统设计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="亿级用户中心的设计与实践">
+<meta property="og:url" content="https://tech.0x4096.com/2021/07/05/design-and-practice-of-100-million-user-center.html">
+<meta property="og:site_name" content="0x4096">
+<meta property="og:description" content="用户中心系统设计">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202201052218135.webp">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202201052218385.webp">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202201052218814.webp">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202201052218656.webp">
+<meta property="article:published_time" content="2021-07-05T14:09:05.000Z">
+<meta property="article:modified_time" content="2021-07-05T14:09:05.000Z">
+<meta property="article:author" content="0x4096">
+<meta property="article:tag" content="系统设计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.0x4096.com//cdn/image/202201052218135.webp">
+
+
+<link rel="canonical" href="https://tech.0x4096.com/2021/07/05/design-and-practice-of-100-million-user-center.html">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://tech.0x4096.com/2021/07/05/design-and-practice-of-100-million-user-center.html","path":"2021/07/05/design-and-practice-of-100-million-user-center.html","title":"亿级用户中心的设计与实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>亿级用户中心的设计与实践 | 0x4096</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?966d9db328492be47a2e40d36f047046"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<style type="text/css">
+  code {
+    color: red;
+    background: #F0F0EC;
+    margin: 0 5px;
+    padding: 3px 5px;
+    border: 0px solid #ddd;
+  }
+</style>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">0x4096</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">0x4096的技术分享</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">13</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">19</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">15</span></a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">一、服务架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.</span> <span class="nav-text">二、接口设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8"><span class="nav-number">3.</span> <span class="nav-text">三、分库分表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81Token%E4%B9%8B%E6%9F%94%E6%80%A7%E9%99%8D%E7%BA%A7"><span class="nav-number">4.</span> <span class="nav-text">四、Token之柔性降级</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%95%B0%E6%8D%AE%E5%AE%89%E5%85%A8"><span class="nav-number">5.</span> <span class="nav-text">五、数据安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%BC%82%E6%AD%A5%E6%B6%88%E8%B4%B9%E8%AE%BE%E8%AE%A1"><span class="nav-number">6.</span> <span class="nav-text">六、异步消费设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E7%81%B5%E6%B4%BB%E5%A4%9A%E6%A0%B7%E7%9A%84%E7%9B%91%E6%8E%A7"><span class="nav-number">7.</span> <span class="nav-text">七、灵活多样的监控</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0x4096"
+      src="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+  <p class="site-author-name" itemprop="name">0x4096</p>
+  <div class="site-description" itemprop="description">求知若饥 虚心若愚</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/0x4096" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;0x4096" rel="noopener" target="_blank">GitHub</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://jm.taobao.org/" title="http:&#x2F;&#x2F;jm.taobao.org&#x2F;" rel="noopener" target="_blank">阿里中间件团队博客</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tech.0x4096.com/2021/07/05/design-and-practice-of-100-million-user-center.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+      <meta itemprop="name" content="0x4096">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="0x4096">
+      <meta itemprop="description" content="求知若饥 虚心若愚">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="亿级用户中心的设计与实践 | 0x4096">
+      <meta itemprop="description" content="用户中心系统设计">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          亿级用户中心的设计与实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+
+
+   <!-- 置顶 -->
+  
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-05 22:09:05" itemprop="dateCreated datePublished" datetime="2021-07-05T22:09:05+08:00">2021-07-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">系统设计</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+
+          <!--
+            <div class="post-description">用户中心系统设计</div>
+          -->
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>转载来源：vivo游戏技术团队 <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/68ktS5d4B2fCub8SqVeUEw">https://mp.weixin.qq.com/s/68ktS5d4B2fCub8SqVeUEw</a></p>
+<blockquote>
+<p>用户中心是互联网最为基础的核心系统，随着业务和用户的增长，势必会带来不断的挑战。如何在亿级的情况下保证系统的高可用，高性能以及高安全，本文能够给你一套实践方案。</p>
+<p>注1：本文讨论的是微服务框架下的用户中心，不涉及授权等功能；</p>
+<p>注2：本文所涉及的用户中心设计与vivo自身业务无关。</p>
+</blockquote>
+<p>用户中心，顾名思义就是管理用户的地方，几乎是所有互联网公司最为核心的子系统之一。它的核心功能是登录与注册，主要功能是修改密码、换绑手机号码、获取用户信息、修改用户信息和一些延伸服务，同时还有登录之后生成Token以及校验Token的功能。下面我们从几个维度来拆解用户中心。</p>
+<h1 id="一、服务架构"><a href="#一、服务架构" class="headerlink" title="一、服务架构"></a>一、服务架构</h1><p>用户中心既需要为用户提供服务，也会承担其他业务的频繁调用；既然需要为用户提供服务，它就会自带一些业务逻辑，比如用户在登录过程中需要风控或短信的校验，那么就会存在不可用的风险。而比如获取用户信息的接口，则没有那么多的依赖，可能只需要调用数据库或者缓存就可以。获取用户信息接口要求稳定，而核心的登录注册接口也需要稳定，但是当我们在接口层面加一些策略或者修改的时候，不希望因为上线问题导致整个服务不可用，而且上线后，需要对整个服务功能做全量的回归，导致资源严重浪费。</p>
+<p>因此，基于业务特性，我们可以将用户中心拆成3个独立的微服务: 网关服务，核心服务，异步消费者服务。网关服务，提供http服务，聚合了各种业务逻辑和服务调用，比如登录时候需要校验的风控或者短信；核心服务，处理简单的业务逻辑以及数据存储，核心服务处在调用链路的终端，几乎不依赖调用其他服务，比如校验Token或者获取用户信息，他们就只依赖于redis或者数据库；而异步消费者服务，则处理并消费异步消息。下文会详细介绍。</p>
+<p><img src="https://cdn.0x4096.com//cdn/image/202201052218135.webp" alt="图片"></p>
+<p>这样的设计之后，当有新功能上线时，核心服务和异步消费服务几乎不需要重新发布，只需要发布网关服务，依赖我们核心服务的第三方非常放心，层级也非常的清晰。当然，这样做的代价就是服务的调用链路变长了。由于涉及到网关和核心服务，就需要发布两个服务，而且要做兼容性测试。</p>
+<h1 id="二、接口设计"><a href="#二、接口设计" class="headerlink" title="二、接口设计"></a>二、接口设计</h1><p>用户中心的接口涉及到用户的核心信息，安全性要求高；同时，承接了较多第三方的调用，可用性要求也高。因此，对用户中心的接口做以下设计：</p>
+<p>首先，接口可以拆分为面向Web和面向App的接口。Web接口需要做到跨域情况下的单点登录，加密、验签和token校验的方式也同App端的不一样。</p>
+<p>其次，对核心接口做特殊处理。比如登录接口，在逻辑和链路上做了一些优化。为什么要对这些接口做特殊处理呢？假如用户不能登录，用户会非常恐慌，客诉量会立马上来。</p>
+<p>那怎么做呢？一方面，我们将用户核心信息表做简单。用户的信息当中会包含userId、手机号码、密码、头像、昵称等字段，假如把用户的这些所有信息都保存在一张表中，那么这张表将会异常庞大，变更字段变得异常困难。因此，需要将用户表拆分，将核心的信息保存在用户表中，比如userId、username、手机号码、密码、盐值（随机生成）等；而一些如性别，头像，昵称等信息保存在用户资料表中。</p>
+<p>另一方面，我们需要将登录的核心链路做短，短到只依赖于读库。一般情况下，用户登录后，需要记录用户登录信息，调用风控或者短信等服务。对于登录链路来说，任何一个环节出现问题都有可能导致用户无法登录，那么怎么样才能做到最短的链路呢？方法就是依赖的服务可自动降级。比如说反欺诈校验出问题了，那么它自动降级后使用它的默认策略，极端情况下只做密码校验，主库挂了之后还能到从库读取用户信息。</p>
+<p>最后就是接口的安全性校验。对App接口我们需要做防重放和验签。验签可能大家比较熟悉，但是对防重放这个概念可能相对陌生。防重放，顾名思义就是防止请求重复发送。用户请求在特定时间段内只能请求一次。即使用户请求被攻击者挟持，在一段时间内也无法重复请求。如果攻击者想要篡改用户请求再发送，对不起，请求不会通过。得益于大数据的支持，结合终端，我们还可以把每个用户行为画像存储在系统中（或者调用第三方服务）。用户发起请求后，我们的接口会根据用户画像对用户进行诸如手机号码校验、实名认证、人脸或者活体校验。</p>
+<p><img src="https://cdn.0x4096.com//cdn/image/202201052218385.webp" alt="图片"></p>
+<h1 id="三、分库分表"><a href="#三、分库分表" class="headerlink" title="三、分库分表"></a>三、分库分表</h1><p>随着用户的增长，数据超过了1亿，怎么办？常见的办法就是分库分表。我们来分析一下用户中心常见的一些表结构：用户信息表，第三方登录关联表，用户事件表。从上述表中可以看出来，用户相关的数据表增长相对缓慢，因为用户增长是有天花板的。用户事件表的增长是呈指数级增长，因为每个用户登录、变更等密码及变更手机号码等操作是不限次数。</p>
+<p>因此，首先我们可以先把用户信息表垂直切分。正如上面说的，将用户ID、密码、手机号、盐值等常见字段从用户信息表中拆分，其他用户相关的信息用单独一张表。另外，把用户事件表迁移至其他库中。相比于水平切分，垂直切分的代价相对较少，操作起来相对简单。用户核心信息表由于数据量相对较少，即使是亿级别的数据，利用数据库缓存的机制，也能够解决性能问题。</p>
+<p>其次，我们可以利用前后台业务的特性采用不同的方式来区别对待。对于用户侧前台访问：用户通过username&#x2F;mobile登录或者通过uid来查询用户信息。用户侧信息的访问通常是单条数据的查询，我们可以通过索引多次查询来解决一致性和高可用问题。对于运营侧后台访问：根据年龄、性别、登录时间段、注册时间段等来进行查询，基本上都是批量分页查询。但是由于是内部系统，查询量低，对一致性要求低。如果用户侧和运营侧的查询采用同一个数据库，那么运营侧的排序查询会导致整个库的CPU上升，查询效率下降，影响到用户侧。因此，运营侧使用的数据库可以是和用户侧同样的MySQL离线库，如果想要增加运营侧的查询效率，可以采用ES非关系型数据库。ES支持分片与复制，方便水平分割和扩展，复制保证了ES的高可用与高吞吐，同时能够满足运营侧的查询需求。</p>
+<p>最后，如果还是要水平切分来保证系统的性能，那么我们采取什么样的切分方式呢？常见的方法有索引表法和基因法。索引表法的思路主要是UID能够直接定位到库，但是手机号码或者username是无法直接定位到库的，需要建立一个索引表来记录mobile与UID或者username与UID的映射关系的方式来解决这个问题。通常这类数据比较少，可以不用分库分表，但是相比直接查询，多了一次数据库查询的同时，在新增数据的时候还多了一次映射关系的插入，事务变大。基因法的思路是我们将username或者mobile融入到UID中。具体做法如下：</p>
+<ol>
+<li>用户注册时，根据用户的手机号码，利用函数生成N bit的基因mobile_gen，使得mobile_gen&#x3D;f(mobile);</li>
+<li>生成M bit全局唯一的id，作为用户标识；</li>
+<li>拼接M和N，作为UID赋给用户；</li>
+<li>根据N bit来取余来插入到特定数据库；</li>
+<li>查找用户数据的时候，将用户UID的后N bit取余来落到最终的库中。</li>
+</ol>
+<p>从上述过程中看，基因法只适用于某类经常查询的场景，比如用手机号码登录，如果用户使用username登录就比较麻烦了。因此大家也可以根据自己的业务场景来选择不同的方式水平切分。</p>
+<h1 id="四、Token之柔性降级"><a href="#四、Token之柔性降级" class="headerlink" title="四、Token之柔性降级"></a>四、Token之柔性降级</h1><p>用户登录之后，另一个重要的事情就是Token的生成与校验。用户的Token分为两类， 一类是web端登陆生成的Token， 这个Token可以和Cookie结合， 达到单点登陆的效果，在此不细说了。另外一类就是APP端登录生成的Token。用户在我们的APP输入用户名密码之后，服务端会对用户的用户名密码进行校验，成功之后从系统配置中心获取加密算法的版本以及秘钥，并按照一定的格式排列用户ID，手机号、随机码以及过期时间，经过一系列的加密之后，生成了Token之后并将其存入Redis缓存。而Token的校验就是把用户ID和Token组合并校验是否在Redis中存在。那么假如Redis不可用了怎么办呢？这里有一个高可用和自动降级的设计。当Redis不可用的时候， 服务端会生成一个特殊格式的Token。当校验Token的时候，会对Token的格式进行一个判断。</p>
+<p><img src="https://cdn.0x4096.com//cdn/image/202201052218814.webp" alt="图片"></p>
+<p>假如判断为Redis不可用时生成的Token，那么服务端会对Token进行解密，而Token的生成是由用户ID，手机号、随机码和过期时间等数据按照特定顺序排列并加密而来的， 那么解密出来的数据中也包含了ID，手机号码，随机码和过期时间。服务端会根据获取到的数据查询数据库， 比对之后告诉用户是否登录成功。由于内存缓存redis和数据库缓存性能的差距，在redis不可用的情况下，降级有可能会导致数据库无法及时响应，因此需要在降级的方法上加入限流。</p>
+<p><img src="https://cdn.0x4096.com//cdn/image/202201052218656.webp" alt="图片"></p>
+<h1 id="五、数据安全"><a href="#五、数据安全" class="headerlink" title="五、数据安全"></a>五、数据安全</h1><p>数据安全对用户中心来说非常重要。敏感数据需要脱敏处理，对密码更是要做多重的加密处理。应用虽然有自己的安全策略，但如果把黑客限制在登录之前，那应用的安全性将得到大幅度的提升。互联网上用户明文数据遭到泄露的案件屡屡发生，因此各大企业对数据安全的认识也提到了前所未有的高度。而即使使用了MD5和salt的加密方式，依然可以使用彩虹表的方式来破解。那么用户中心对用户信息是怎么保存的呢？</p>
+<p>首先，正如上文中提到的用户密码、手机号等登录信息和其他的信息分离，而且在不同的数据库中。其次，对用户设置的密码进行了黑名单校验，只要符合条件的弱密码，都会拒绝提交，因为不管使用了什么加密方式的弱密码，都极其容易破解。为什么呢？因为人的记性很差，大部分人总是最倾向于选择生日，单词等来当密码。6位纯数字可以生成100万个不同的密码，8位小写字母和数字的组合大概可以生成2.8万亿个不同的密码。一个规模为7.8万亿的密码库足以覆盖大部分用户的密码，对于不同的加密算法都可以拥有这样一个密码库，这也就是为什么大部分网站都建议用户使用8位以上数字加字母密码的原因。当然，如果一方面加了盐值，另一方面对密钥分开保管，破解难度会指数级增加。</p>
+<p>最后，可以用bcrypt&#x2F;scrypt的方式来加密。bcrypt算法是基于Blowfish块密钥算法来实现的，bcrypt内部实现了随机加盐处理，使用bcrypt之后每次加密后的密文都不一样，同时还会使用内存初始化hash过程。由于使用内存，虽然在CPU上运行很快，但是在GPU上并行运算并不快。随着新的FPGA集成了大型RAM，解决了内存密集IO的问题，但是破解难度依然不小。而scrypt算法弥补了bcrypt算法的不足，它将CPU计算与内存使用开销都指数级提升了。bcrypt和scrypt算法能够有效抵御彩虹表，但是安全性的提升带来了用户登录性能的下降。用户登录注册并不是一个高并发的接口，所以影响并不会特别大。因此在安全和性能方面需要依据业务类型和大小来做平衡，并不是所有的应用都需要使用这种加密方式来保护用户密码。</p>
+<h1 id="六、异步消费设计"><a href="#六、异步消费设计" class="headerlink" title="六、异步消费设计"></a>六、异步消费设计</h1><p>此处的异步消费，就是上文提到的异步消费服务。用户在做完登录注册等操作后，需要记录用户的操作日志。同时，用户注册登录完毕后，下游业务需要对用户增加积分，赠送礼券等奖励操作。这些系统如果都同步依赖于用户中心，那么整个用户中心将异常庞大，链路非常冗长，也不符合业内的“大系统做小“的原则。依赖的服务不可用之后将会造成用户无法登录注册。因此，用户中心在用户操作完之后，将用户事件入库后发送至MQ，第三方业务监听用户事件。用户中心和下游业务解耦，同时用户操作事件入库后，在MQ不可用或者消息丢失的时候可做补偿处理。用户的画像数据也在很大程度上来源于此处的数据。</p>
+<h1 id="七、灵活多样的监控"><a href="#七、灵活多样的监控" class="headerlink" title="七、灵活多样的监控"></a>七、灵活多样的监控</h1><p>用户中心涉及到用户的登录注册更改密码等核心功能，能否及时发现系统的问题成为关键指标，因此对业务的监控显得尤为重要。需要对用户中心重要接口的QPS、机器的内存使用量、垃圾回收的时间、服务的调用时间等做详细的监控。当某个接口的调用量下降的时候，监控会及时发出报警。除了这些监控之外，还有对数据库Binlog的写入，前端组件，以及基于ZipKin全链路调用时间的监控，实现从用户发起端到结束端的全面监控，哪怕出现一点问题，监控随时会告诉你哪里出问题了。比如运营互动推广注册量下降的时候，用户中心就会发出报警，可以及时通知业务方改正问题，挽回损失。</p>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag"># 系统设计</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/06/30/talk-about-thread-again.html" rel="prev" title="再谈线程">
+                  <i class="fa fa-chevron-left"></i> 再谈线程
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/12/backoff-strategy.html" rel="next" title="退避策略">
+                  退避策略 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0x4096</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">116k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:45</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+  <div class="powered-by">
+      <a href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral" target="_blank"> 
+         <image src="https://cdn.0x4096.com/cdn/image/ypy.jpeg" width="300px" />
+      </a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://unpkg.com/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

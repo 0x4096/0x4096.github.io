@@ -1,0 +1,2 @@
+https://tech.0x4096.com/2023/08/28/mysql-lock-type.html
+https://tech.0x4096.com/2023/06/06/mysql-lock-analyze.html

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"tech.0x4096.com","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.11.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="支付平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="野蛮生长 - 做支付的这一年">
+<meta property="og:url" content="https://tech.0x4096.com/2020/05/01/savage-growth-make-pay.html">
+<meta property="og:site_name" content="0x4096">
+<meta property="og:description" content="支付平台">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://cdn.0x4096.com//image/20200914215712.png">
+<meta property="og:image" content="http://cdn.0x4096.com//image/20200914222145.png">
+<meta property="og:image" content="http://cdn.0x4096.com/image/%E6%94%AF%E4%BB%98%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png">
+<meta property="article:published_time" content="2020-05-01T07:58:59.000Z">
+<meta property="article:modified_time" content="2020-05-01T07:58:59.000Z">
+<meta property="article:author" content="0x4096">
+<meta property="article:tag" content="支付">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://cdn.0x4096.com//image/20200914215712.png">
+
+
+<link rel="canonical" href="https://tech.0x4096.com/2020/05/01/savage-growth-make-pay.html">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://tech.0x4096.com/2020/05/01/savage-growth-make-pay.html","path":"2020/05/01/savage-growth-make-pay.html","title":"野蛮生长 - 做支付的这一年"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>野蛮生长 - 做支付的这一年 | 0x4096</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?966d9db328492be47a2e40d36f047046"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<style type="text/css">
+  code {
+    color: red;
+    background: #F0F0EC;
+    margin: 0 5px;
+    padding: 3px 5px;
+    border: 0px solid #ddd;
+  }
+</style>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">0x4096</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">0x4096的技术分享</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">13</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">19</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">15</span></a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%95%99%E4%B8%8B%E7%9A%84%E7%BC%98"><span class="nav-number">2.</span> <span class="nav-text">留下的缘</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A2%AB%E8%BF%AB%E6%88%90%E9%95%BF"><span class="nav-number">3.</span> <span class="nav-text">被迫成长</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E8%BF%87%E7%9A%84%E7%8F%AD"><span class="nav-number">4.</span> <span class="nav-text">加过的班</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91"><span class="nav-number">5.</span> <span class="nav-text">踩过的坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E8%BF%9B%E5%8C%96"><span class="nav-number">6.</span> <span class="nav-text">项目进化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%AF%E4%BB%98%E9%93%BE%E8%B7%AF%E6%9C%89%E5%A4%9A%E5%A4%8D%E6%9D%82%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">支付链路有多复杂？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F"><span class="nav-number">8.1.</span> <span class="nav-text">系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%BD%E5%8A%9B"><span class="nav-number">8.2.</span> <span class="nav-text">能力</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0x4096"
+      src="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+  <p class="site-author-name" itemprop="name">0x4096</p>
+  <div class="site-description" itemprop="description">求知若饥 虚心若愚</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/0x4096" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;0x4096" rel="noopener" target="_blank">GitHub</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://jm.taobao.org/" title="http:&#x2F;&#x2F;jm.taobao.org&#x2F;" rel="noopener" target="_blank">阿里中间件团队博客</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tech.0x4096.com/2020/05/01/savage-growth-make-pay.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+      <meta itemprop="name" content="0x4096">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="0x4096">
+      <meta itemprop="description" content="求知若饥 虚心若愚">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="野蛮生长 - 做支付的这一年 | 0x4096">
+      <meta itemprop="description" content="支付平台">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          野蛮生长 - 做支付的这一年
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+
+
+   <!-- 置顶 -->
+  
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-05-01 15:58:59" itemprop="dateCreated datePublished" datetime="2020-05-01T15:58:59+08:00">2020-05-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B7%A5%E4%BD%9C/" itemprop="url" rel="index"><span itemprop="name">工作</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+
+          <!--
+            <div class="post-description">支付平台</div>
+          -->
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>如果，回过头来看看这一年走过的路？</p>
+<h2 id="留下的缘"><a href="#留下的缘" class="headerlink" title="留下的缘"></a>留下的缘</h2><p>玩支付这块的游戏得从大学开始。在学校呢，偶尔会做作业，而每次我选的课题都是与订单支付相关，比如，在线点餐、网上商城等，所以在订单这块玩的还挺溜。不过，个人账号申请不了支付相关的信息，需要相关的营业执照，所以每次演示项目效果都是简单的模拟支付结果，然后支付成功，评价…</p>
+<p>两年前，我以实习生的身份入职这家公司，很意外的接触了公司的支付项目，然后，支付之旅就开始了。公司的支付系统从0到1，再到多个版本的迭代，然后进化成现在的统一支付平台，这一路还是有那么几个难忘的夜晚以及小故事。</p>
+<h2 id="被迫成长"><a href="#被迫成长" class="headerlink" title="被迫成长"></a>被迫成长</h2><p>19年的春节是在2月5号，以学生的名义在家度过最后一个元宵节，然后匆忙到公司，写代码，完善服务。第一次项目上线是在2019年3月12号，服务一发就是两天，从12号发到13号凌晨一点多，那天应该是我实习那么久来，成长最多的一天（但这次，却不是我最后一次，因为服务归档没做好而导致发布意外多）。我相信，很多刚走出校门的人，对于关键日志的打印，异常堆栈的捕获等，都欠缺完善的处理。而我，就是其中一个。当时服务上线后，移动客户端初始化请求一直报错，日志不详细，我不知道哪里空指针了，哪个数据库字段缺失了？怎么办？当时的解决方案就是加日志、重写发布，再加日志、重写发布，远程断点… 那晚，我感到十分的内疚和自责，为什么那么多的前期工作没做好？我还拖着我的领导到凌晨一点。其实，发布的问题他可以很快的帮我解决，但他没有这样做，而是一步步的指引我，让我冷静去分析问题，再去解决问题。</p>
+<p>有问题不可怕，只要敢于面对，最终不都得以解决嘛。</p>
+<p>业务发展谈不上飞速，却在7、8月爆发，也就是我刚毕业的那一两个月。最糟的情况下，我一周四天没写过代码，每天都在排查、追踪各种问题，那段时间压力很大，所有的问题都需要一个人抗住。现在回过头来，真是被迫生长啊。</p>
+<p>支付的链路比较长，日志排查成了痛点，日志上下文杂多，分布式项目只能靠订单号定位关键日志，却丢失上下文。怎么办？日志链路追踪，在了解了相关开源解决方案后，选择了蚂蚁的SOFATracer （<a target="_blank" rel="noopener" href="https://www.sofastack.tech/projects/sofa-tracer/overview/%EF%BC%89">https://www.sofastack.tech/projects/sofa-tracer/overview/）</a> 作为学习目标，快速简单的实现了一个内部版本，问题排查的难点解决了（已开源一个简单实现，开箱即用  <a target="_blank" rel="noopener" href="https://github.com/0x4096/tracer/">https://github.com/0x4096/tracer/</a> ）。至于为什么不直接用别人的工具，主要还是暂时没必要去使用这么一个较复杂的工具。</p>
+<p>9月，支付项目有新需求需要上线，很幸运的是，那群同事刚好出现，替我分担了很多压力，否则我一个人，真的是做不完啊。而这个月也是我压力最大的一个月，我记得那天周四，我想去打个羽毛球，打了没20分钟，我就打车回公司了，我的心完全被束缚了。</p>
+<p>经历了一个月的服务改动，四个人的代码增加、修改，项目上线的前提必须保证测试到位，服务完整归档。而那一天，服务发到凌晨三点，服务归档不详细，封版的代码还在改，MQ网络不通…，导致上线后出现一系列问题，哪能怎么办啊？我是主要负责人，所有问题都应由我一人承担…</p>
+<p>从经历过这次以后，后面发服务都是沉稳…</p>
+<h2 id="加过的班"><a href="#加过的班" class="headerlink" title="加过的班"></a>加过的班</h2><p>连续三个月的加班，周末，你要问我成长了什么？我不知道该怎么回答…但我还挺怀恋那段时间…</p>
+<h2 id="踩过的坑"><a href="#踩过的坑" class="headerlink" title="踩过的坑"></a>踩过的坑</h2><ol>
+<li>dubbo版本替换成Apache的，重试机制默认是2，由于网络问题，导致支付失败，重试出现问题…</li>
+<li>订单查询核心参数没校验，导致支付错单号…</li>
+<li>支付金额代码用double，导致精度丢失…</li>
+<li>退款dubbo接口超时（其实已经成功），订单状态没改…</li>
+<li>订单关闭，但是用户又支付…</li>
+</ol>
+<h2 id="项目进化"><a href="#项目进化" class="headerlink" title="项目进化"></a>项目进化</h2><p>支付作为一个基础服务，主要提供便捷的支付能力供业务系统使用，整个支付链路如下图</p>
+<img src="http://cdn.0x4096.com//image/20200914215712.png"> 
+<br/>
+
+<p>公司的支付较为复杂，涉及好几个支付账号，同时又涉及多个支付场景，比如一家医院有多个支付宝账号授权，这时就需要配置使用哪个支付账号发起，那种业务场景操作。支付中心都屏蔽了这些细节，业务系统在使用接口时只需要关心核心参数即可，其他交付由支付中心处理。</p>
+<p>支付涉及多个系统，将其拆分为支付中心，订单中心，通知中心，几个核心模块，业务系统接入支付能力，整体链路如下</p>
+<img src="http://cdn.0x4096.com//image/20200914222145.png"> 
+<br/>
+
+<p>一般支付系统都会进行拆分订单中心和支付中心两个系统。在最初的设计上，订单系统只提供订单相关能力，支付中心支提供支付能力，当时的业务系统需要接入支付能力，成本非常高，需要在订单系统创建订单相关，然后去支付中心获取支付能力，在支付完成后需要调用订单系统修改订单状态，这一做法对业务系统来说，太繁琐了。同时，在业务系统创建订单后，能不能简化支付呢？在支付中心我们封装的接口都是最原始的接口，如果让业务系统去直接调用，那么成本还是比较高，字段多，场景丰富。其实，对于业务系统来说，他只关心使用哪种支付渠道支付哪笔订单即可。所以呢，我们在订单系统封装了一套支付能力，简化业务系统的操作，同时可以控制订单信息，避免关闭的订单业务系统还能支付等。为了防止网络问题，导致接口超时，订单系统与支付中心的核心交易接口增加了交易结果补偿，避免出现单边账。</p>
+<p>支付架构经过多次迭代，最终演变成如下图（参考了马蜂窝支付）</p>
+<img src="http://cdn.0x4096.com/image/%E6%94%AF%E4%BB%98%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png"> 
+<br/>
+
+<p>各模块各尽其责，职责单一。支付发展到今天，功能逐步完善，对账平台出现，聚合支付能力也跟上。</p>
+<h2 id="支付链路有多复杂？"><a href="#支付链路有多复杂？" class="headerlink" title="支付链路有多复杂？"></a>支付链路有多复杂？</h2><p>我们在使用微信或支付宝付款之后，究竟发生了什么？来看个视频，微博原文 <a target="_blank" rel="noopener" href="https://weibo.com/tv/show/1034:4523725815742474?from=old_pc_videoshow">https://weibo.com/tv/show/1034:4523725815742474?from=old_pc_videoshow</a></p>
+<p><video src="https://f.video.weibocdn.com/M6pe8Ut3lx07ECVgHR7i010412062CQE0E030.mp4?label=mp4_1080p&template=1920x1080.25.0&trans_finger=daa7c63436091a9dfe20e4b554312cac&media_id=4523725815742474&tp=8x8A3El:YTkl0eM8&us=0&ori=1&bf=3&ot=h&ps=3lckmu&uid=6Au4TI&ab=966-g1,3370-g1&Expires=1604239915&ssig=CUoRsYWbiL&KID=unistore,video" width="900px" controls="controls"></video></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="系统"><a href="#系统" class="headerlink" title="系统"></a>系统</h3><ul>
+<li>日志，十分重要（包括规范），dubbo接口请求入参必须要，链路追踪不可少；</li>
+<li>监控，出现异常，必须第一时间通知相关人员，尽可能的减少单边账，支付不可用问题；</li>
+<li>异步，能走异步通过消息处理的，一律异步处理，减低系统耦合性；</li>
+</ul>
+<h3 id="能力"><a href="#能力" class="headerlink" title="能力"></a>能力</h3><p>很幸运有机会去接触支付相关，领导的信任让我去负责这么一个事情，实现了公司支付系统从0到1的过程。这个过程，不仅仅是代码能力的提升…</p>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%94%AF%E4%BB%98/" rel="tag"># 支付</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/03/18/extends-interface-code-conflict.html" rel="prev" title="当继承、接口出现代码冲突">
+                  <i class="fa fa-chevron-left"></i> 当继承、接口出现代码冲突
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/05/13/when-classes-conflict.html" rel="next" title="当类出现冲突">
+                  当类出现冲突 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0x4096</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">116k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:45</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+  <div class="powered-by">
+      <a href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral" target="_blank"> 
+         <image src="https://cdn.0x4096.com/cdn/image/ypy.jpeg" width="300px" />
+      </a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://unpkg.com/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

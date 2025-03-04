@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"tech.0x4096.com","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.11.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="时间轮算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="时间轮算法是如何实现的？">
+<meta property="og:url" content="https://tech.0x4096.com/2021/01/03/how-is-the-time-wheel-algorithm-implemented.html">
+<meta property="og:site_name" content="0x4096">
+<meta property="og:description" content="时间轮算法">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/0081Kckwly1gmal4o6n7ij30pj0c0abi.jpg">
+<meta property="article:published_time" content="2021-01-03T09:29:28.000Z">
+<meta property="article:modified_time" content="2021-01-03T09:29:28.000Z">
+<meta property="article:author" content="0x4096">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="时间轮">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/0081Kckwly1gmal4o6n7ij30pj0c0abi.jpg">
+
+
+<link rel="canonical" href="https://tech.0x4096.com/2021/01/03/how-is-the-time-wheel-algorithm-implemented.html">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://tech.0x4096.com/2021/01/03/how-is-the-time-wheel-algorithm-implemented.html","path":"2021/01/03/how-is-the-time-wheel-algorithm-implemented.html","title":"时间轮算法是如何实现的？"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>时间轮算法是如何实现的？ | 0x4096</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?966d9db328492be47a2e40d36f047046"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<style type="text/css">
+  code {
+    color: red;
+    background: #F0F0EC;
+    margin: 0 5px;
+    padding: 3px 5px;
+    border: 0px solid #ddd;
+  }
+</style>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">0x4096</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">0x4096的技术分享</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">13</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">19</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">15</span></a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E7%94%A8%E6%9D%A5%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">时间轮用来解决什么问题？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.</span> <span class="nav-text">时间轮结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91"><span class="nav-number">1.3.</span> <span class="nav-text">时间轮运行逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">2.1.</span> <span class="nav-text">构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BE%E5%85%A5%E4%BB%BB%E5%8A%A1%E5%88%B0%E6%97%B6%E9%97%B4%E8%BD%AE%E4%B8%AD"><span class="nav-number">2.2.</span> <span class="nav-text">放入任务到时间轮中</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#start"><span class="nav-number">2.2.1.</span> <span class="nav-text">start</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E6%97%B6%E9%97%B4%E8%BD%AE"><span class="nav-number">2.3.</span> <span class="nav-text">启动时间轮</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE%E6%8C%87%E9%92%88%E8%B7%B3%E5%8A%A8"><span class="nav-number">2.4.</span> <span class="nav-text">时间轮指针跳动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E7%A7%BB%E4%BB%BB%E5%8A%A1%E5%88%B0%E6%97%B6%E9%97%B4%E8%BD%AE%E4%B8%AD"><span class="nav-number">2.5.</span> <span class="nav-text">转移任务到时间轮中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E9%97%B4%E8%BD%AE%E4%B8%AD%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.6.</span> <span class="nav-text">运行时间轮中的任务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A5%E5%85%85"><span class="nav-number">3.</span> <span class="nav-text">补充</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">3.1.</span> <span class="nav-text">示例</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0x4096"
+      src="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+  <p class="site-author-name" itemprop="name">0x4096</p>
+  <div class="site-description" itemprop="description">求知若饥 虚心若愚</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/0x4096" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;0x4096" rel="noopener" target="_blank">GitHub</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://jm.taobao.org/" title="http:&#x2F;&#x2F;jm.taobao.org&#x2F;" rel="noopener" target="_blank">阿里中间件团队博客</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tech.0x4096.com/2021/01/03/how-is-the-time-wheel-algorithm-implemented.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+      <meta itemprop="name" content="0x4096">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="0x4096">
+      <meta itemprop="description" content="求知若饥 虚心若愚">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="时间轮算法是如何实现的？ | 0x4096">
+      <meta itemprop="description" content="时间轮算法">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          时间轮算法是如何实现的？
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+
+
+   <!-- 置顶 -->
+  
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-01-03 17:29:28" itemprop="dateCreated datePublished" datetime="2021-01-03T17:29:28+08:00">2021-01-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%97%B6%E9%97%B4%E8%BD%AE/" itemprop="url" rel="index"><span itemprop="name">时间轮</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>16k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>14 分钟</span>
+    </span>
+</div>
+
+
+          <!--
+            <div class="post-description">时间轮算法</div>
+          -->
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>特别说明：封面图片来源  <a target="_blank" rel="noopener" href="https://www.zcool.com.cn/work/ZNDg3OTA5NjA=.htmlPS">https://www.zcool.com.cn/work/ZNDg3OTA5NjA=.htmlPS</a><br>未授权…若作者看到后不愿意授权可联系下架</p>
+</blockquote>
+<blockquote>
+<p>转载来源：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/luozhiyun/p/12075326.html">https://www.cnblogs.com/luozhiyun/p/12075326.html</a> 作者：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/luozhiyun/">luozhiyun</a><br>本文有修改</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>如果让你用 Java 代码写一个定时调度任务，大多数人第一时间可能会想到用 quartz 去实现，如果我们用纯生的 Java 代码怎么实现呢？我们可以使用 TimerTask、Timer 去实现这么一个功能，或者使用 ScheduledExecutorService 通过调度线程池去完成。使用定时任务有很多场景，比如订单定时关闭，定时推送广告，一定时间后默认好评等。拿订单超时关闭来说，最简单的实现方式就是为每个订单创建一个定时任务。</p>
+<h3 id="时间轮用来解决什么问题？"><a href="#时间轮用来解决什么问题？" class="headerlink" title="时间轮用来解决什么问题？"></a>时间轮用来解决什么问题？</h3><p>如果一个系统中存在着大量的调度任务，而大量的调度任务如果每一个都使用自己的调度器来管理任务的生命周期的话，浪费 CPU 的资源并且很低效。</p>
+<p>时间轮是一种高效来利用线程资源来进行批量化调度的一种调度模型。把大批量的调度任务全部都绑定到同一个的调度器上面，使用这一个调度器来进行所有任务的管理（manager），触发（trigger）以及运行（runnable）。能够高效的管理各种延时任务，周期任务，通知任务等等。</p>
+<p>不过，时间轮调度器的时间精度可能不是很高，对于精度要求特别高的调度任务可能不太适合。因为时间轮算法的精度取决于，时间段“指针”单元的最小粒度大小，比如时间轮的格子是一秒跳一次，那么调度精度小于一秒的任务就无法被时间轮所调度。</p>
+<h3 id="时间轮结构"><a href="#时间轮结构" class="headerlink" title="时间轮结构"></a>时间轮结构</h3><p><img src="https://tva1.sinaimg.cn/large/0081Kckwly1gmal4o6n7ij30pj0c0abi.jpg" alt="时间轮结构"></p>
+<p>如图，JRaft中时间轮（HashedWheelTimer）是一个存储定时任务的环形队列，底层采用数组实现，数组中的每个元素可以存放一个定时任务列表（HashedWheelBucket），HashedWheelBucket是一个环形的双向链表，链表中的每一项表示的都是定时任务项（HashedWheelTimeout），其中封装了真正的定时任务（TimerTask）。</p>
+<p>时间轮由多个时间格组成，每个时间格代表当前时间轮的基本时间跨度（tickDuration）。时间轮的时间格个数是固定的，可用 wheel.length 来表示。</p>
+<p>时间轮还有一个表盘指针（tick），用来表示时间轮当前指针跳动的次数，可以用tickDuration * (tick + 1)来表示下一次到期的任务，需要处理此时间格所对应的 HashedWheelBucket 中的所有任务。</p>
+<h3 id="时间轮运行逻辑"><a href="#时间轮运行逻辑" class="headerlink" title="时间轮运行逻辑"></a>时间轮运行逻辑</h3><p>时间轮在启动的时候会记录一下当前启动的时间赋值给startTime。时间轮在添加任务的时候首先会计算延迟时间（deadline），比如一个任务的延迟时间为24ms，那么会将当前的时间（currentTime）+24ms-时间轮启动时的时间（startTime）。然后将任务封装成HashedWheelTimeout加入到timeouts队列中，作为缓存。</p>
+<p>时间轮在运行的时候会将timeouts中缓存的HashedWheelTimeout任务取10万个出来进行遍历。<br>然后需要计算出几个参数值：</p>
+<ol>
+<li>HashedWheelTimeout的总共延迟的次数：将每个任务的延迟时间（deadline）&#x2F;tickDuration 计算出tick需要总共跳动的次数；</li>
+<li>计算时间轮round次数：根据计算的需要走的（总次数- 当前tick数量）&#x2F; 时间格个数（wheel.length）。比如tickDuration为1ms，时间格个数为20个，那么时间轮走一圈需要20ms，那么添加进一个延时为24ms的数据，如果当前的tick为0，那么计算出的轮数为1，指针没运行一圈就会将round取出来减一，所以需要转动到第二轮之后才可以将轮数round减为0之后才会运行</li>
+<li>计算出该任务需要放置到时间轮（wheel）的槽位，然后加入到槽位链表最后</li>
+</ol>
+<p>将timeouts中的数据放置到时间轮wheel中之后，计算出当前时针走到的槽位的位置，并取出槽位中的链表数据，将deadline和当前的时间做对比，运行过期的数据。</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>源码以 netty 中的 HashedWheelTimer 为例。</p>
+<h3 id="构造器"><a href="#构造器" class="headerlink" title="构造器"></a>构造器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a new timer.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> threadFactory        a &#123;<span class="doctag">@link</span> ThreadFactory&#125; that creates a</span></span><br><span class="line"><span class="comment"> *                             background &#123;<span class="doctag">@link</span> Thread&#125; which is dedicated to</span></span><br><span class="line"><span class="comment"> *                             &#123;<span class="doctag">@link</span> TimerTask&#125; execution.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> tickDuration         the duration between tick</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> unit                 the time unit of the &#123;<span class="doctag">@code</span> tickDuration&#125;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> ticksPerWheel        the size of the wheel</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> leakDetection        &#123;<span class="doctag">@code</span> true&#125; if leak detection should be enabled always,</span></span><br><span class="line"><span class="comment"> *                             if false it will only be enabled if the worker thread is not</span></span><br><span class="line"><span class="comment"> *                             a daemon thread.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>  maxPendingTimeouts  The maximum number of pending timeouts after which call to</span></span><br><span class="line"><span class="comment"> *                             &#123;<span class="doctag">@code</span> newTimeout&#125; will result in</span></span><br><span class="line"><span class="comment"> *                             &#123;<span class="doctag">@link</span> java.util.concurrent.RejectedExecutionException&#125;</span></span><br><span class="line"><span class="comment"> *                             being thrown. No maximum pending timeouts limit is assumed if</span></span><br><span class="line"><span class="comment"> *                             this value is 0 or negative.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> NullPointerException     if either of &#123;<span class="doctag">@code</span> threadFactory&#125; and &#123;<span class="doctag">@code</span> unit&#125; is &#123;<span class="doctag">@code</span> null&#125;</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalArgumentException if either of &#123;<span class="doctag">@code</span> tickDuration&#125; and &#123;<span class="doctag">@code</span> ticksPerWheel&#125; is &amp;lt;= 0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">HashedWheelTimer</span><span class="params">(</span></span><br><span class="line"><span class="params">        ThreadFactory threadFactory,</span></span><br><span class="line"><span class="params">        <span class="type">long</span> tickDuration, TimeUnit unit, <span class="type">int</span> ticksPerWheel, <span class="type">boolean</span> leakDetection,</span></span><br><span class="line"><span class="params">        <span class="type">long</span> maxPendingTimeouts)</span> &#123;</span><br><span class="line"></span><br><span class="line">    ObjectUtil.checkNotNull(threadFactory, <span class="string">&quot;threadFactory&quot;</span>);</span><br><span class="line">    ObjectUtil.checkNotNull(unit, <span class="string">&quot;unit&quot;</span>);</span><br><span class="line">    ObjectUtil.checkPositive(tickDuration, <span class="string">&quot;tickDuration&quot;</span>);</span><br><span class="line">    ObjectUtil.checkPositive(ticksPerWheel, <span class="string">&quot;ticksPerWheel&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Normalize ticksPerWheel to power of two and initialize the wheel.</span></span><br><span class="line">    <span class="comment">// 创建一个HashedWheelBucket数组 创建时间轮基本的数据结构，一个数组。长度为不小于ticksPerWheel的最小2的n次方</span></span><br><span class="line">    wheel = createWheel(ticksPerWheel);</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 这是一个标示符，用来快速计算任务应该呆的格子。</span></span><br><span class="line">    <span class="comment">// 我们知道，给定一个deadline的定时任务，其应该呆的格子=deadline%wheel.length.</span></span><br><span class="line">  	<span class="comment">// 但是%操作是个相对耗时的操作，所以使用一种变通的位运算代替：</span></span><br><span class="line">    <span class="comment">// 因为一圈的长度为2的n次方，mask = 2^n-1后低位将全部是1，然后deadline&amp;mast == deadline%wheel.length</span></span><br><span class="line">    <span class="comment">// java中的HashMap在进行hash之后，进行index的hash寻址寻址的算法也是和这个一样的</span></span><br><span class="line">    mask = wheel.length - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Convert tickDuration to nanos.</span></span><br><span class="line">    <span class="comment">//tickDuration传入是1的话，这里会转换成1000000</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> unit.toNanos(tickDuration);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prevent overflow.</span></span><br><span class="line">    <span class="comment">// 校验是否存在溢出。即指针转动的时间间隔不能太长而导致tickDuration*wheel.length&gt;Long.MAX_VALUE</span></span><br><span class="line">    <span class="keyword">if</span> (duration &gt;= Long.MAX_VALUE / wheel.length) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(String.format(</span><br><span class="line">                <span class="string">&quot;tickDuration: %d (expected: 0 &lt; tickDuration in nanos &lt; %d&quot;</span>,</span><br><span class="line">                tickDuration, Long.MAX_VALUE / wheel.length));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (duration &lt; MILLISECOND_NANOS) &#123;</span><br><span class="line">        logger.warn(<span class="string">&quot;Configured tickDuration &#123;&#125; smaller then &#123;&#125;, using 1ms.&quot;</span>,</span><br><span class="line">                    tickDuration, MILLISECOND_NANOS);</span><br><span class="line">        <span class="built_in">this</span>.tickDuration = MILLISECOND_NANOS;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.tickDuration = duration;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//将worker包装成thread</span></span><br><span class="line">    workerThread = threadFactory.newThread(worker);</span><br><span class="line"></span><br><span class="line">    leak = leakDetection || !workerThread.isDaemon() ? leakDetector.track(<span class="built_in">this</span>) : <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.maxPendingTimeouts = maxPendingTimeouts;</span><br><span class="line">  </span><br><span class="line">		<span class="comment">//如果HashedWheelTimer实例太多，那么就会打印一个error日志</span></span><br><span class="line">    <span class="keyword">if</span> (INSTANCE_COUNTER.incrementAndGet() &gt; INSTANCE_COUNT_LIMIT &amp;&amp;</span><br><span class="line">        WARNED_TOO_MANY_INSTANCES.compareAndSet(<span class="literal">false</span>, <span class="literal">true</span>)) &#123;</span><br><span class="line">        reportTooManyInstances();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在这个构造器中有几个细节需要注意：</p>
+<ol>
+<li>调用createWheel方法创建的wheel数组一定是2次方数，比如传入的ticksPerWheel是6，那么初始化的wheel长度一定是8。这样做是为了让mask &amp; tick 来计算出槽位</li>
+<li>tickDuration用的是纳秒</li>
+<li>在构造里面并不会里面启动时间轮，而是要等到有第一个任务加入到时间轮的时候才启动。在构造器里面会将工作线程worker封装成workerThread</li>
+</ol>
+<h3 id="放入任务到时间轮中"><a href="#放入任务到时间轮中" class="headerlink" title="放入任务到时间轮中"></a>放入任务到时间轮中</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Timeout <span class="title function_">newTimeout</span><span class="params">(TimerTask task, <span class="type">long</span> delay, TimeUnit unit)</span> &#123;</span><br><span class="line">    ObjectUtil.checkNotNull(task, <span class="string">&quot;task&quot;</span>);</span><br><span class="line">    ObjectUtil.checkNotNull(unit, <span class="string">&quot;unit&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">long</span> <span class="variable">pendingTimeoutsCount</span> <span class="operator">=</span> pendingTimeouts.incrementAndGet();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (maxPendingTimeouts &gt; <span class="number">0</span> &amp;&amp; pendingTimeoutsCount &gt; maxPendingTimeouts) &#123;</span><br><span class="line">        pendingTimeouts.decrementAndGet();</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RejectedExecutionException</span>(<span class="string">&quot;Number of pending timeouts (&quot;</span></span><br><span class="line">            + pendingTimeoutsCount + <span class="string">&quot;) is greater than or equal to maximum allowed pending &quot;</span></span><br><span class="line">            + <span class="string">&quot;timeouts (&quot;</span> + maxPendingTimeouts + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">// 如果时间轮没有启动，则启动</span></span><br><span class="line">    start();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Add the timeout to the timeout queue which will be processed on the next tick.</span></span><br><span class="line">    <span class="comment">// During processing all the queued HashedWheelTimeouts will be added to the correct HashedWheelBucket.</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">deadline</span> <span class="operator">=</span> System.nanoTime() + unit.toNanos(delay) - startTime;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Guard against overflow.</span></span><br><span class="line">    <span class="comment">//在delay为正数的情况下，deadline是不可能为负数</span></span><br><span class="line">		<span class="comment">//如果为负数，那么说明超过了long的最大值</span></span><br><span class="line">    <span class="keyword">if</span> (delay &gt; <span class="number">0</span> &amp;&amp; deadline &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        deadline = Long.MAX_VALUE;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 这里定时任务不是直接加到对应的格子中，而是先加入到一个队列里，然后等到下一个tick的时候，</span></span><br><span class="line">		<span class="comment">// 会从队列里取出最多100000个任务加入到指定的格子中</span></span><br><span class="line">    <span class="type">HashedWheelTimeout</span> <span class="variable">timeout</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashedWheelTimeout</span>(<span class="built_in">this</span>, task, deadline);</span><br><span class="line">    <span class="comment">//Worker会去处理timeouts队列里面的数据</span></span><br><span class="line">    timeouts.add(timeout);</span><br><span class="line">    <span class="keyword">return</span> timeout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol>
+<li>如果时间轮没有启动，那么就调用start方法启动时间轮，启动时间轮之后会为startTime设置为当前时间</li>
+<li>计算延迟时间deadline</li>
+<li>将task任务封装到HashedWheelTimeout中，然后添加到timeouts队列中进行缓存</li>
+</ol>
+<h4 id="start"><a href="#start" class="headerlink" title="start"></a>start</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">CountDownLatch</span> <span class="variable">startTimeInitialized</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//workerState一开始的时候是0（WORKER_STATE_INIT），然后才会设置为1（WORKER_STATE_STARTED）</span></span><br><span class="line">    <span class="keyword">switch</span> (WORKER_STATE_UPDATER.get(<span class="built_in">this</span>)) &#123;</span><br><span class="line">        <span class="keyword">case</span> WORKER_STATE_INIT:</span><br><span class="line">            <span class="comment">//使用cas来获取启动调度的权力，只有竞争到的线程允许来进行实例启动</span></span><br><span class="line">            <span class="keyword">if</span> (WORKER_STATE_UPDATER.compareAndSet(<span class="built_in">this</span>, WORKER_STATE_INIT, WORKER_STATE_STARTED)) &#123;</span><br><span class="line">                <span class="comment">//如果成功设置了workerState，那么就调用workerThread线程</span></span><br><span class="line">                workerThread.start();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> WORKER_STATE_STARTED:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> WORKER_STATE_SHUTDOWN:</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;cannot be started once stopped&quot;</span>);</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;Invalid WorkerState&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Wait until the startTime is initialized by the worker.</span></span><br><span class="line">   	<span class="comment">// 等待worker线程初始化时间轮的启动时间</span></span><br><span class="line">    <span class="keyword">while</span> (startTime == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//这里使用countDownLauch来确保调度的线程已经被启动</span></span><br><span class="line">            startTimeInitialized.await();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException ignore) &#123;</span><br><span class="line">            <span class="comment">// Ignore - it will be ready very soon.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>start方法会根据当前的workerState状态来启动时间轮。并且用了startTimeInitialized来控制线程的运行，如果workerThread没有启动起来，那么newTimeout方法会一直阻塞在运行start方法中。如果不阻塞，newTimeout方法会获取不到startTime。</p>
+<h3 id="启动时间轮"><a href="#启动时间轮" class="headerlink" title="启动时间轮"></a>启动时间轮</h3><p>时间轮的启动在HashedWheelTimer的内部类Worker中。调用workerThread#start方法会调用Worker的run方法启动时间轮。</p>
+<p>下面我们看时间轮启动做了什么，下面的分析不考虑任务被取消的情况。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// Initialize the startTime.</span></span><br><span class="line">    startTime = System.nanoTime();</span><br><span class="line">    <span class="keyword">if</span> (startTime == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// We use 0 as an indicator for the uninitialized value here, so make sure it&#x27;s not 0 when initialized.</span></span><br><span class="line">        startTime = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Notify the other threads waiting for the initialization at start().</span></span><br><span class="line">    <span class="comment">//HashedWheelTimer的start方法会继续往下运行</span></span><br><span class="line">    startTimeInitialized.countDown();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="comment">//返回的是当前的nanoTime- startTime</span></span><br><span class="line">				<span class="comment">//也就是返回的是 每 tick 一次的时间间隔</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">long</span> <span class="variable">deadline</span> <span class="operator">=</span> waitForNextTick();</span><br><span class="line">        <span class="keyword">if</span> (deadline &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">//算出时间轮的槽位</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">idx</span> <span class="operator">=</span> (<span class="type">int</span>) (tick &amp; mask);</span><br><span class="line">            <span class="comment">//移除cancelledTimeouts中的bucket</span></span><br><span class="line">    				<span class="comment">// 从bucket中移除timeout</span></span><br><span class="line">            processCancelledTasks();</span><br><span class="line">            <span class="type">HashedWheelBucket</span> <span class="variable">bucket</span> <span class="operator">=</span> wheel[idx];</span><br><span class="line">            <span class="comment">// 将newTimeout()方法中加入到待处理定时任务队列中的任务加入到指定的格子中</span></span><br><span class="line">            transferTimeoutsToBuckets();</span><br><span class="line">            bucket.expireTimeouts(deadline);</span><br><span class="line">            tick++;</span><br><span class="line">        &#125;</span><br><span class="line">      <span class="comment">// 校验如果workerState是started状态，那么就一直循环</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (WORKER_STATE_UPDATER.get(HashedWheelTimer.<span class="built_in">this</span>) == WORKER_STATE_STARTED);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Fill the unprocessedTimeouts so we can return them from stop() method.</span></span><br><span class="line">    <span class="keyword">for</span> (HashedWheelBucket bucket: wheel) &#123;</span><br><span class="line">        bucket.clearTimeouts(unprocessedTimeouts);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="type">HashedWheelTimeout</span> <span class="variable">timeout</span> <span class="operator">=</span> timeouts.poll();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//如果有没有被处理的timeout，那么加入到unprocessedTimeouts对列中</span></span><br><span class="line">        <span class="keyword">if</span> (!timeout.isCancelled()) &#123;</span><br><span class="line">            unprocessedTimeouts.add(timeout);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//处理被取消的任务</span></span><br><span class="line">    processCancelledTasks();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>时间轮运行的时候首先会记录一下启动时间（startTime），然后调用startTimeInitialized释放外层的等待线程；</li>
+<li>进入dowhile循环，调用waitForNextTick睡眠等待到下一次的tick指针的跳动，并返回当前时间减去startTime作为deadline</li>
+<li>由于mask&#x3D; wheel.length -1 ，wheel是2的次方数，所以可以直接用tick &amp; mask 计算出此次在wheel中的槽位</li>
+<li>调用processCancelledTasks将cancelledTimeouts队列中的任务取出来，并将当前的任务从时间轮中移除</li>
+<li>调用transferTimeoutsToBuckets方法将timeouts队列中缓存的数据取出加入到时间轮中</li>
+<li>运行目前指针指向的槽位中的bucket链表数据</li>
+</ol>
+<h3 id="时间轮指针跳动"><a href="#时间轮指针跳动" class="headerlink" title="时间轮指针跳动"></a>时间轮指针跳动</h3><p><strong>waitForNextTick</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//sleep, 直到下次tick到来, 然后返回该次tick和启动时间之间的时长</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">long</span> <span class="title function_">waitForNextTick</span><span class="params">()</span> &#123;</span><br><span class="line">	<span class="comment">//tickDuration这里是100000</span></span><br><span class="line">	<span class="comment">//tick表示总tick数</span></span><br><span class="line">	<span class="type">long</span> <span class="variable">deadline</span> <span class="operator">=</span> tickDuration * (tick + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">	    <span class="comment">// 计算需要sleep的时间, 之所以加999999后再除10000000,前面是1所以这里需要减去1，</span></span><br><span class="line">				<span class="comment">// 才能计算准确，还有通过这里可以看到 其实线程是以睡眠一定的时候再来执行下一个ticket的任务的，</span></span><br><span class="line">				<span class="comment">//这样如果ticket的间隔设置的太小的话，系统会频繁的睡眠然后启动，</span></span><br><span class="line">				<span class="comment">//其实感觉影响部分的性能，所以为了更好的利用系统资源步长可以稍微设置大点</span></span><br><span class="line">	    <span class="keyword">final</span> <span class="type">long</span> <span class="variable">currentTime</span> <span class="operator">=</span> System.nanoTime() - startTime;</span><br><span class="line">	    <span class="type">long</span> <span class="variable">sleepTimeMs</span> <span class="operator">=</span> (deadline - currentTime + <span class="number">999999</span>) / <span class="number">1000000</span>;</span><br><span class="line">	  </span><br><span class="line">	    <span class="comment">//sleepTimeMs小于零表示走到了下一个时间轮位置</span></span><br><span class="line">	    <span class="keyword">if</span> (sleepTimeMs &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">	        <span class="keyword">if</span> (currentTime == Long.MIN_VALUE) &#123;</span><br><span class="line">	            <span class="keyword">return</span> -Long.MAX_VALUE;</span><br><span class="line">	        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	            <span class="keyword">return</span> currentTime;</span><br><span class="line">	        &#125;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    <span class="comment">// Check if we run on windows, as if thats the case we will need</span></span><br><span class="line">	    <span class="comment">// to round the sleepTime as workaround for a bug that only affect</span></span><br><span class="line">	    <span class="comment">// the JVM if it runs on windows.</span></span><br><span class="line">	    <span class="comment">//</span></span><br><span class="line">	    <span class="comment">// See https://github.com/netty/netty/issues/356</span></span><br><span class="line">	    <span class="keyword">if</span> (PlatformDependent.isWindows()) &#123;</span><br><span class="line">	        sleepTimeMs = sleepTimeMs / <span class="number">10</span> * <span class="number">10</span>;</span><br><span class="line">	        <span class="keyword">if</span> (sleepTimeMs == <span class="number">0</span>) &#123;</span><br><span class="line">	            sleepTimeMs = <span class="number">1</span>;</span><br><span class="line">	        &#125;</span><br><span class="line">	    &#125;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">try</span> &#123;</span><br><span class="line">	        Thread.sleep(sleepTimeMs);</span><br><span class="line">	    &#125; <span class="keyword">catch</span> (InterruptedException ignored) &#123;</span><br><span class="line">	        <span class="keyword">if</span> (WORKER_STATE_UPDATER.get(HashedWheelTimer.<span class="built_in">this</span>) == WORKER_STATE_SHUTDOWN) &#123;</span><br><span class="line">	            <span class="keyword">return</span> Long.MIN_VALUE;</span><br><span class="line">	        &#125;</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以想象一下在时钟的秒钟上面秒与秒之间的时间是需要等待的，那么waitForNextTick这个方法就是根据当前的时间计算出跳动到下个时间的间隔时间，并进行sleep操作，然后返回当前时间距离时间轮启动时间的时间段。</p>
+<h3 id="转移任务到时间轮中"><a href="#转移任务到时间轮中" class="headerlink" title="转移任务到时间轮中"></a>转移任务到时间轮中</h3><p>在调用时间轮的方法加入任务的时候并没有直接加入到时间轮中，而是缓存到了timeouts队列中，所以在运行的时候需要将timeouts队列中的任务转移到时间轮数据的链表中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">transferTimeoutsToBuckets</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// transfer only max. 100000 timeouts per tick to prevent a thread to stale the workerThread when it just</span></span><br><span class="line">    <span class="comment">// adds new timeouts in a loop.</span></span><br><span class="line">    <span class="comment">// 每次tick只处理10w个任务，以免阻塞worker线程</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">100_000</span>; i++) &#123;</span><br><span class="line">        <span class="type">HashedWheelTimeout</span> <span class="variable">timeout</span> <span class="operator">=</span> timeouts.poll();</span><br><span class="line">        <span class="keyword">if</span> (timeout == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// all processed</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//已经被取消了；</span></span><br><span class="line">        <span class="keyword">if</span> (timeout.state() == HashedWheelTimeout.ST_CANCELLED) &#123;</span><br><span class="line">            <span class="comment">// Was cancelled in the meantime.</span></span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//calculated = tick 次数</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">calculated</span> <span class="operator">=</span> timeout.deadline / tickDuration;</span><br><span class="line">        <span class="comment">// 计算剩余的轮数, 只有 timer 走够轮数, 并且到达了 task 所在的 slot, task 才会过期</span></span><br><span class="line">        timeout.remainingRounds = (calculated - tick) / wheel.length;</span><br><span class="line">			<span class="comment">//如果任务在timeouts队列里面放久了, 以至于已经过了执行时间, 这个时候就使用当前tick, 也就是放到当前bucket, 此方法调用完后就会被执行</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">long</span> <span class="variable">ticks</span> <span class="operator">=</span> Math.max(calculated, tick); <span class="comment">// Ensure we don&#x27;t schedule for past.</span></span><br><span class="line">        <span class="comment">// 算出任务应该插入的 wheel 的 slot, slotIndex = tick 次数 &amp; mask, mask = wheel.length - 1</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">stopIndex</span> <span class="operator">=</span> (<span class="type">int</span>) (ticks &amp; mask);</span><br><span class="line"></span><br><span class="line">        <span class="type">HashedWheelBucket</span> <span class="variable">bucket</span> <span class="operator">=</span> wheel[stopIndex];</span><br><span class="line">        <span class="comment">//将timeout加入到bucket链表中</span></span><br><span class="line">        bucket.addTimeout(timeout);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在这个转移方法中，写死了一个循环，每次都只转移10万个任务。</p>
+<p>然后根据HashedWheelTimeout的deadline延迟时间计算出时间轮需要运行多少次才能运行当前的任务，如果当前的任务延迟时间大于时间轮跑一圈所需要的时间，那么就计算需要跑几圈才能到这个任务运行。</p>
+<p>最后计算出该任务在时间轮中的槽位，添加到时间轮的链表中。</p>
+<h3 id="运行时间轮中的任务"><a href="#运行时间轮中的任务" class="headerlink" title="运行时间轮中的任务"></a>运行时间轮中的任务</h3><p>当指针跳到时间轮的槽位的时间，会将槽位的HashedWheelBucket取出来，然后遍历链表，运行其中到期的任务。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 过期并执行格子中的到期任务，tick到该格子的时候，worker线程会调用这个方法</span></span><br><span class="line"><span class="comment">//根据deadline和remainingRounds判断任务是否过期</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">expireTimeouts</span><span class="params">(<span class="type">long</span> deadline)</span> &#123;</span><br><span class="line">      <span class="type">HashedWheelTimeout</span> <span class="variable">timeout</span> <span class="operator">=</span> head;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// process all timeouts</span></span><br><span class="line">		<span class="comment">//遍历格子中的所有定时任务</span></span><br><span class="line">      <span class="keyword">while</span> (timeout != <span class="literal">null</span>) &#123;</span><br><span class="line">          <span class="type">HashedWheelTimeout</span> <span class="variable">next</span> <span class="operator">=</span> timeout.next;</span><br><span class="line">          <span class="keyword">if</span> (timeout.remainingRounds &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">              <span class="comment">//从bucket链表中移除当前timeout，并返回链表中下一个timeout</span></span><br><span class="line">              next = remove(timeout);</span><br><span class="line">              <span class="comment">//如果timeout的时间小于当前的时间，那么就调用expire执行task</span></span><br><span class="line">              <span class="keyword">if</span> (timeout.deadline &lt;= deadline) &#123;</span><br><span class="line">                  timeout.expire();</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  <span class="comment">// The timeout was placed into a wrong slot. This should never happen.</span></span><br><span class="line">                  <span class="comment">//不可能发生的情况，就是说round已经为0了，deadline却&gt;当前槽的deadline</span></span><br><span class="line">                  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(String.format(</span><br><span class="line">                          <span class="string">&quot;timeout.deadline (%d) &gt; deadline (%d)&quot;</span>, timeout.deadline, deadline));</span><br><span class="line">              &#125;</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (timeout.isCancelled()) &#123;</span><br><span class="line">              next = remove(timeout);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              <span class="comment">//因为当前的槽位已经过了，说明已经走了一圈了，把轮数减一</span></span><br><span class="line">              timeout.remainingRounds --;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">//把指针放置到下一个timeout</span></span><br><span class="line">          timeout = next;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>HashedWheelBucket是一个链表，所以我们需要从head节点往下进行遍历。如果链表没有遍历到链表尾部那么就继续往下遍历。</p>
+<p>获取的timeout节点节点，如果剩余轮数remainingRounds大于0，那么就说明要到下一圈才能运行，所以将剩余轮数减一；</p>
+<p>如果当前剩余轮数小于等于零了，那么就将当前节点从bucket链表中移除，并判断一下当前的时间是否大于timeout的延迟时间，如果是则调用timeout的expire执行任务。</p>
+<h2 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h2><p>finalize() ，都知道这个方法是 Object 的方法，开发这么久也没有使用过，也很少看到他人使用，在这里终于看到了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">finalize</span><span class="params">()</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.finalize();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// This object is going to be GCed and it is assumed the ship has sailed to do a proper shutdown. If</span></span><br><span class="line">        <span class="comment">// we have not yet shutdown then we want to make sure we decrement the active instance count.</span></span><br><span class="line">        <span class="keyword">if</span> (WORKER_STATE_UPDATER.getAndSet(<span class="built_in">this</span>, WORKER_STATE_SHUTDOWN) != WORKER_STATE_SHUTDOWN) &#123;</span><br><span class="line">            INSTANCE_COUNTER.decrementAndGet();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用说明再看一遍注释</p>
+<blockquote>
+<p>Called by the garbage collector on an object when garbage collection determines that there are no more references to the object. A subclass overrides the finalize method to dispose of system resources or to perform other cleanup.<br>The general contract of finalize is that it is invoked if and when the Java™ virtual machine has determined that there is no longer any means by which this object can be accessed by any thread that has not yet died, except as a result of an action taken by the finalization of some other object or class which is ready to be finalized. The finalize method may take any action, including making this object available again to other threads; the usual purpose of finalize, however, is to perform cleanup actions before the object is irrevocably discarded. For example, the finalize method for an object that represents an input&#x2F;output connection might perform explicit I&#x2F;O transactions to break the connection before the object is permanently discarded.<br>The finalize method of class Object performs no special action; it simply returns normally. Subclasses of Object may override this definition.<br>The Java programming language does not guarantee which thread will invoke the finalize method for any given object. It is guaranteed, however, that the thread that invokes finalize will not be holding any user-visible synchronization locks when finalize is invoked. If an uncaught exception is thrown by the finalize method, the exception is ignored and finalization of that object terminates.<br>After the finalize method has been invoked for an object, no further action is taken until the Java virtual machine has again determined that there is no longer any means by which this object can be accessed by any thread that has not yet died, including possible actions by other objects or classes which are ready to be finalized, at which point the object may be discarded.<br>The finalize method is never invoked more than once by a Java virtual machine for any given object.<br>Any exception thrown by the finalize method causes the finalization of this object to be halted, but is otherwise ignored.<br>Throws:<br>Throwable – the Exception raised by this method<br>See Also:<br>ref.WeakReference, ref.PhantomReference</p>
+</blockquote>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FinalizeTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">FinalizeTest</span> <span class="variable">finalizeTest</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FinalizeTest</span>();</span><br><span class="line">        finalizeTest = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        WeakReference&lt;FinalizeTest&gt; weakReference = <span class="keyword">new</span> <span class="title class_">WeakReference</span>&lt;&gt;(finalizeTest);</span><br><span class="line">        weakReference.clear();</span><br><span class="line">        </span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">finalize</span><span class="params">()</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="built_in">super</span>.finalize();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            System.err.println(<span class="string">&quot;被回收处理了...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>需要注意的是，并不是每次执行都能输出 被回收处理了… ，这是因为我们在调用 System.gc(); 方法时 JVM 不一定会垃圾回收，只是建议 JVM，嘿，哥们，你可以垃圾回收试试。</p>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E6%97%B6%E9%97%B4%E8%BD%AE/" rel="tag"># 时间轮</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/12/26/MultiThread-execution-1+2+...n.html" rel="prev" title="多线程执行1+2+3+...+n">
+                  <i class="fa fa-chevron-left"></i> 多线程执行1+2+3+...+n
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/02/thirtysomething.html" rel="next" title="一生中最可怕的时期，30岁上下，决定男人的一生">
+                  一生中最可怕的时期，30岁上下，决定男人的一生 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0x4096</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">116k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:45</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+  <div class="powered-by">
+      <a href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral" target="_blank"> 
+         <image src="https://cdn.0x4096.com/cdn/image/ypy.jpeg" width="300px" />
+      </a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://unpkg.com/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

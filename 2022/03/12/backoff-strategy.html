@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.1.1/css/all.min.css" integrity="sha256-DfWjNxDkM94fVBWx1H5BMMp0Zq7luBlV8QRcSES7s+0=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"tech.0x4096.com","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.11.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="退避策略">
+<meta property="og:type" content="article">
+<meta property="og:title" content="退避策略">
+<meta property="og:url" content="https://tech.0x4096.com/2022/03/12/backoff-strategy.html">
+<meta property="og:site_name" content="0x4096">
+<meta property="og:description" content="退避策略">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202203122146525.png">
+<meta property="og:image" content="https://cdn.0x4096.com//cdn/image/202203122147544.png">
+<meta property="article:published_time" content="2022-03-12T13:41:05.000Z">
+<meta property="article:modified_time" content="2022-03-12T13:41:05.000Z">
+<meta property="article:author" content="0x4096">
+<meta property="article:tag" content="稳定性">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.0x4096.com//cdn/image/202203122146525.png">
+
+
+<link rel="canonical" href="https://tech.0x4096.com/2022/03/12/backoff-strategy.html">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://tech.0x4096.com/2022/03/12/backoff-strategy.html","path":"2022/03/12/backoff-strategy.html","title":"退避策略"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>退避策略 | 0x4096</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?966d9db328492be47a2e40d36f047046"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<style type="text/css">
+  code {
+    color: red;
+    background: #F0F0EC;
+    margin: 0 5px;
+    padding: 3px 5px;
+    border: 0px solid #ddd;
+  }
+</style>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">0x4096</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">0x4096的技术分享</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">13</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">19</span></a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">15</span></a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="nav-number">3.</span> <span class="nav-text">实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-BackOff"><span class="nav-number">3.1.</span> <span class="nav-text">Spring BackOff</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FixedBackOff"><span class="nav-number">3.1.1.</span> <span class="nav-text">FixedBackOff</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ExponentialBackOff"><span class="nav-number">3.1.2.</span> <span class="nav-text">ExponentialBackOff</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Retry"><span class="nav-number">3.2.</span> <span class="nav-text">Spring Retry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Retry"><span class="nav-number">3.3.</span> <span class="nav-text">Retry</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0x4096"
+      src="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+  <p class="site-author-name" itemprop="name">0x4096</p>
+  <div class="site-description" itemprop="description">求知若饥 虚心若愚</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/0x4096" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;0x4096" rel="noopener" target="_blank">GitHub</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      友情链接
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://jm.taobao.org/" title="http:&#x2F;&#x2F;jm.taobao.org&#x2F;" rel="noopener" target="_blank">阿里中间件团队博客</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tech.0x4096.com/2022/03/12/backoff-strategy.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://cdn.0x4096.com//cdn/image/007S8ZIlgy1gja6idxwudj30hs0hsq3e.jpg">
+      <meta itemprop="name" content="0x4096">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="0x4096">
+      <meta itemprop="description" content="求知若饥 虚心若愚">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="退避策略 | 0x4096">
+      <meta itemprop="description" content="退避策略">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          退避策略
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+
+
+   <!-- 置顶 -->
+  
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-12 21:41:05" itemprop="dateCreated datePublished" datetime="2022-03-12T21:41:05+08:00">2022-03-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">系统设计</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+
+          <!--
+            <div class="post-description">退避策略</div>
+          -->
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>特别说明：封面图片来源  <a target="_blank" rel="noopener" href="https://www.zcool.com.cn/work/ZNTQ3NzE5OTI=.html">https://www.zcool.com.cn/work/ZNTQ3NzE5OTI=.html</a>  PS：未授权…若作者看到后不愿意授权可联系下架</p>
+</blockquote>
+<p><a name="c7h2l"></a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>系统之间的交互大多是通过 RPC 的方式，交互的协议包括 HTTP、Dubbo、gRpc 等，无论什么协议，在接口之间的调用时会存在一种异常情况，那就是超时。导致接口超时的原因大多是网络抖动，或者服务提供方能力受限，无法处理大量请求，比如 IO 网络消耗，数据库消耗，磁盘等。</p>
+<p>在遇到接口超时问题时，我们可能会考虑重试接口调用，通过重试策略来减低接口超时错误，那么每次重试的时间间隔是多少呢？有什么规律呢？这就涉及退避策略。</p>
+<p><a name="zD0XZ"></a></p>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>退避是指怎么去做下一次的重试，通俗简单的理解就是等待多长时间，常见的退避策略有以下两种方式。</p>
+<ul>
+<li><p>固定时间间隔重试：一个接口调用失败了，不是立马返回失败，而是 hold 住线程，每隔一定时长重新调用接口，最多调用一定次数，只要其中一次成功了就直接返回。如果达到最大调用上限次数都没成功，接口返回失败。</p>
+</li>
+<li><p>指数时间间隔重试：重试的时间间隔不在是按照固定时间，而是按照一定的增加方式增加，比如第一次 1s，第二次 2s，第三次 4s 秒，依次按照某种规律增加。使用此类重试机制的如 RocketMQ 的消息重试。</p>
+</li>
+</ul>
+<p>需要注意的是，退避策略和重试策略需要区分开来。重试策略，主要是用来判断调用接口异常时是否需要重试。退避策略着重的是在重试过程中怎么去做下一次的重试。</p>
+<p><a name="uNXp6"></a></p>
+<h2 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h2><p><a name="o2hwI"></a></p>
+<h3 id="Spring-BackOff"><a href="#Spring-BackOff" class="headerlink" title="Spring BackOff"></a>Spring BackOff</h3><p>清楚了退避策略，那么在代码中我们如何实现呢？这里可以参考 Spring 的 BackOff ，代码比较简单，具体的代码路径为 <code>org.springframework.util.backoff.BackOff</code> 该类为接口，具体实现有固定时间间隔重试 <code>FixedBackOff</code> 和指数时间间隔重试 <code>ExponentialBackOff</code> 。下面介绍一下如何使用。</p>
+<p>通过查看 <code>BackOff</code>类里面注释，可以知道使用方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">FixedBackOff</span> <span class="variable">backOff</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FixedBackOff</span>();</span><br><span class="line"><span class="type">BackOffExecution</span> <span class="variable">exec</span> <span class="operator">=</span> backOff.start();</span><br><span class="line"></span><br><span class="line"><span class="comment">// In the operation recovery/retry loop:</span></span><br><span class="line"><span class="type">long</span> <span class="variable">waitInterval</span> <span class="operator">=</span> exec.nextBackOff();</span><br><span class="line"><span class="keyword">if</span> (waitInterval == BackOffExecution.STOP) &#123;</span><br><span class="line">    <span class="comment">// do not retry operation</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// sleep, e.g. Thread.sleep(waitInterval)</span></span><br><span class="line">    <span class="comment">// retry operation</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在具体使用时，我们需要在使用重试的代码中进行循环，直到重试策略停止。</p>
+<p><a name="soOoQ"></a></p>
+<h4 id="FixedBackOff"><a href="#FixedBackOff" class="headerlink" title="FixedBackOff"></a>FixedBackOff</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">FixedBackOff</span> <span class="variable">fixedBackOff</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FixedBackOff</span>();</span><br><span class="line">fixedBackOff.setInterval(<span class="number">2_000</span>); <span class="comment">// 重试时间间隔, 单位毫秒</span></span><br><span class="line">fixedBackOff.setMaxAttempts(<span class="number">2</span>); <span class="comment">// 最大重试次数 </span></span><br><span class="line"><span class="type">BackOffExecution</span> <span class="variable">backOffExecution</span> <span class="operator">=</span> fixedBackOff.start();</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">value</span> <span class="operator">=</span> backOffExecution.nextBackOff();</span><br><span class="line">    <span class="keyword">if</span> (value == BackOffExecution.STOP) &#123;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Thread.sleep(value);</span><br><span class="line">        <span class="comment">// 业务逻辑</span></span><br><span class="line">        System.err.println(value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a name="cd8pe"></a></p>
+<h4 id="ExponentialBackOff"><a href="#ExponentialBackOff" class="headerlink" title="ExponentialBackOff"></a>ExponentialBackOff</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">initialInterval</span> <span class="operator">=</span> <span class="number">100</span>;           <span class="comment">// 初始间隔</span></span><br><span class="line"><span class="type">double</span> <span class="variable">multiplier</span> <span class="operator">=</span> <span class="number">2.0</span>;              <span class="comment">// 递增倍数</span></span><br><span class="line"><span class="type">long</span> <span class="variable">maxInterval</span> <span class="operator">=</span> <span class="number">5</span> * <span class="number">1000L</span>;         <span class="comment">// 最大间隔</span></span><br><span class="line"><span class="type">long</span> <span class="variable">maxElapsedTime</span> <span class="operator">=</span> <span class="number">5</span> * <span class="number">1000L</span>;     <span class="comment">// 累计最大的时间间隔</span></span><br><span class="line"></span><br><span class="line"><span class="type">ExponentialBackOff</span> <span class="variable">backOff</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ExponentialBackOff</span>(initialInterval, multiplier);</span><br><span class="line">backOff.setMaxInterval(maxInterval);</span><br><span class="line">backOff.setMaxElapsedTime(maxElapsedTime);</span><br><span class="line"></span><br><span class="line"><span class="type">BackOffExecution</span> <span class="variable">backOffExecution</span> <span class="operator">=</span> backOff.start();</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">value</span> <span class="operator">=</span> backOffExecution.nextBackOff();</span><br><span class="line">    <span class="keyword">if</span> (value == BackOffExecution.STOP) &#123;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        System.err.println(value);</span><br><span class="line">        Thread.sleep(value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们需要自定义退避策略，只需要实现 <code>BackOff</code>和 <code>BackOffExecution</code>接口即可。</p>
+<p><a name="mv2FF"></a></p>
+<h3 id="Spring-Retry"><a href="#Spring-Retry" class="headerlink" title="Spring Retry"></a>Spring Retry</h3><p>Spring BackOff 提供的退避策略很清晰，如果我们在代码中去这样做，实在过于繁琐，遵从设计模式的开闭原则，我们应该避免直接修改核心逻辑，而是通过其他方式来进行代码控制。Spring 就为我们提供了相关工具，Spring Retry，通过 AOP 的方式来对一个方法进行重试 。在 maven 中，该包是这样描述的</p>
+<blockquote>
+<p>Spring Retry provides an abstraction around retrying failed operations, with an emphasis on declarative control of the process and policy-based behaviour that is easy to extend and customize. For instance, you can configure a plain POJO operation to retry if it fails, based on the type of exception, and with a fixed or exponential backoff.</p>
+</blockquote>
+<p>具体的使用和原理可以参考这篇文章 <a target="_blank" rel="noopener" href="https://ost.51cto.com/posts/3324">Spring 中的重试机制，简单、实用！</a>，核心原理实现就是通过 AOP 。<br />在 Spring Retry 中，重试策略更为丰富。<br /><img src="https://cdn.0x4096.com//cdn/image/202203122146525.png"></p>
+<ul>
+<li>SimpleRetryPolicy<br />默认最多重试3次</li>
+<li>TimeoutRetryPolicy<br />默认在1秒内失败都会重试</li>
+<li>ExpressionRetryPolicy<br />符合表达式就会重试</li>
+<li>CircuitBreakerRetryPolicy<br />增加了熔断的机制，如果不在熔断状态，则允许重试</li>
+<li>CompositeRetryPolicy<br />可以组合多个重试策略</li>
+<li>NeverRetryPolicy<br />从不重试</li>
+<li>AlwaysRetryPolicy<br />总是重试</li>
+</ul>
+<p>退避策略也进行了丰富。<br /><img src="https://cdn.0x4096.com//cdn/image/202203122147544.png"></p>
+<ul>
+<li>FixedBackOffPolicy<br />默认固定延迟1秒后执行下一次重试</li>
+<li>ExponentialBackOffPolicy<br />指数递增延迟执行重试，默认初始0.1秒，系数是2，那么下次延迟0.2秒，再下次就是延迟0.4秒，如此类推，最大30秒。</li>
+<li>ExponentialRandomBackOffPolicy<br />在上面那个策略上增加随机性</li>
+<li>UniformRandomBackOffPolicy<br />这个跟上面的区别就是，上面的延迟会不停递增，这个只会在固定的区间随机</li>
+<li>StatelessBackOffPolicy<br />这个说明是无状态的，所谓无状态就是对上次的退避无感知，从它下面的子类也能看出来</li>
+</ul>
+<p>在使用时我们通过注解的方式进行重试和退避策略的设置，如果项目没有使用 Spring 框架，我们应该怎么使用呢？我们可以通过 RetryTemplate 进行重试和退避策略的构造，在 execute 方法入参中实现 RetryCallback 接口即可。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">RetryTemplate</span> <span class="variable">retryTemplate</span> <span class="operator">=</span> RetryTemplate.builder()</span><br><span class="line">        .infiniteRetry()</span><br><span class="line">        .retryOn(Exception.class)</span><br><span class="line">        .uniformRandomBackoff(<span class="number">1000</span>, <span class="number">3000</span>)</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line">retryTemplate.execute(<span class="keyword">new</span> <span class="title class_">HelloServiceRetryCallbackImpl</span>());</span><br></pre></td></tr></table></figure>
+
+<p><a name="XVEs3"></a></p>
+<h3 id="Retry"><a href="#Retry" class="headerlink" title="Retry"></a>Retry</h3><p>除了 Spring 提供的重试框架，<a target="_blank" rel="noopener" href="https://resilience4j.readme.io/">resilience4j</a>  也提供了重试框架，resilience4j 功能比较丰富，有下面几个模块功能。</p>
+<ul>
+<li>resilience4j-circuitbreaker: Circuit breaking</li>
+<li>resilience4j-ratelimiter: Rate limiting</li>
+<li>resilience4j-bulkhead: Bulkheading</li>
+<li>resilience4j-retry: Automatic retrying (sync and async)</li>
+<li>resilience4j-cache: Result caching</li>
+<li>resilience4j-timelimiter: Timeout handling</li>
+</ul>
+<p>这里需要使用 resilience4j-retry 的能力。具体使用需要通过编码的方式，没有像 Spring Retry 那样提供注解。示例如下，更多方法使用，自行阅读 API。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">RetryConfig</span> <span class="variable">config</span> <span class="operator">=</span> RetryConfig.custom()</span><br><span class="line">        .maxAttempts(<span class="number">2</span>)</span><br><span class="line">        .waitDuration(Duration.ofMillis(<span class="number">3000</span>))</span><br><span class="line">        <span class="comment">//.retryOnResult(response -&gt; response.getStatus() == 500)</span></span><br><span class="line">        .retryOnException(e -&gt; e <span class="keyword">instanceof</span> RuntimeException)</span><br><span class="line">        .retryExceptions(IOException.class, TimeoutException.class)</span><br><span class="line">        .ignoreExceptions(IllegalArgumentException.class)</span><br><span class="line">        .build();</span><br><span class="line"></span><br><span class="line"><span class="type">RetryRegistry</span> <span class="variable">retryRegistry</span> <span class="operator">=</span> RetryRegistry.of(config);</span><br><span class="line"></span><br><span class="line"><span class="type">Retry</span> <span class="variable">retry</span> <span class="operator">=</span> retryRegistry.retry(<span class="string">&quot;retry&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">TestService</span> <span class="variable">testService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TestService</span>();</span><br><span class="line"></span><br><span class="line"><span class="type">Runnable</span> <span class="variable">runnable</span> <span class="operator">=</span> Retry.decorateRunnable(retry, testService::test);</span><br><span class="line">runnable.run();</span><br></pre></td></tr></table></figure>
+
+
+<p><a name="KV4vZ"></a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>程序的稳定性要想做好不是一件简单的事情，网络因素影响是常事，遇到网络抖动，网络拥堵，程序需要自适应调整，配置重试策略，结合实际情况选择合适的退避策略，尽可能的保证程序的可用性。</p>
+<p><a name="s2Dif"></a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/54chensongxia/p/12376966.html">接口调用失败的退避策略</a> </li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/linyufeng/p/13361188.html">Spring retry使用和采坑记录</a></li>
+<li><a target="_blank" rel="noopener" href="https://ost.51cto.com/posts/3324">Spring 中的重试机制，简单、实用！</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5531b66b777a">Resilience4j-轻量级熔断框架</a> </li>
+<li><a target="_blank" rel="noopener" href="https://resilience4j.readme.io/">resilience4j 官网</a></li>
+</ol>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%A8%B3%E5%AE%9A%E6%80%A7/" rel="tag"># 稳定性</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/05/design-and-practice-of-100-million-user-center.html" rel="prev" title="亿级用户中心的设计与实践">
+                  <i class="fa fa-chevron-left"></i> 亿级用户中心的设计与实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/22/redis-memory-optimization.html" rel="next" title="Redis的内存优化">
+                  Redis的内存优化 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0x4096</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">116k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:45</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+  <div class="powered-by">
+      <a href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral" target="_blank"> 
+         <image src="https://cdn.0x4096.com/cdn/image/ypy.jpeg" width="300px" />
+      </a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://unpkg.com/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
